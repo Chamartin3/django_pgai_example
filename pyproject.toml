@@ -1,0 +1,35 @@
+[project]
+name = "django-pgai-example"
+version = "0.1.0"
+description = "Example Django project demonstrating django-pgai plugin"
+requires-python = ">=3.11"
+dependencies = [
+    "django>=5.0.7",
+    "psycopg2-binary",
+    "psycopg[binary]>=3.0",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.django]
+settings-module = "settings"
+
+[tool.hatch.build.targets.wheel]
+packages = ["settings"]
+
+[tool.ruff]
+exclude = [".git", ".venv", "__pycache__", "migrations"]
+target-version = "py311"
+line-length = 88
+
+[tool.ruff.lint]
+select = ["E", "W", "F", "I", "B", "UP", "DJ"]
+ignore = ["E501", "B008", "DJ001"]
+
+[tool.ruff.lint.per-file-ignores]
+"__init__.py" = ["F401"]
+
+[tool.ruff.lint.isort]
+known-first-party = ["wiki_new", "settings"]
