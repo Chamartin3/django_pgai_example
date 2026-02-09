@@ -3,9 +3,11 @@ Application definition - installed apps configuration
 """
 
 LIBRARY_APPS = [
+    "django_pgai",
 ]
 
 PROJECT_APPS = [
+    "wiki_new",
 ]
 
 INSTALLED_APPS = [

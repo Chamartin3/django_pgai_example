@@ -5,19 +5,28 @@ description = "Example Django project demonstrating django-pgai plugin"
 requires-python = ">=3.11"
 dependencies = [
     "django>=5.0.7",
+    "django-typer",
+    "typer",
     "psycopg2-binary",
     "psycopg[binary]>=3.0",
+    "rich",
+    "ipython",
+    "pgai[vectorizer-worker]==0.11.2",
+    "django-pgai",
 ]
 
 [build-system]
 requires = ["hatchling"]
 build-backend = "hatchling.build"
 
+[tool.uv.sources]
+django-pgai = { path = "/src/plugin", editable = true }
+
 [tool.django]
 settings-module = "settings"
 
 [tool.hatch.build.targets.wheel]
-packages = ["settings"]
+packages = ["wiki_new", "settings"]
 
 [tool.ruff]
 exclude = [".git", ".venv", "__pycache__", "migrations"]
