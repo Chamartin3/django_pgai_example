@@ -1,0 +1,10 @@
+"""Test command dispatcher setup."""
+
+# Import command classes for dispatcher
+from .eval.ranking import rankingCommand
+from .search import search
+
+__all__ = [
+    "ranking",
+    "search",
+]
