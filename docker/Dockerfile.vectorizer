@@ -1,0 +1,9 @@
+FROM timescale/pgai-vectorizer-worker:latest
+
+COPY ./docker/bin/start_vertorizer /usr/local/bin/start_vertorizer
+COPY ./docker/bin/wait_for_service /usr/local/bin/wait_for_service
+
+USER root
+RUN chmod +x /usr/local/bin/start_vertorizer /usr/local/bin/wait_for_service
+
+ENTRYPOINT ["start_vertorizer"]
