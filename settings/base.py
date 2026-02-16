@@ -89,7 +89,7 @@ MIDDLEWARE = [
 
 ROOT_URLCONF = 'urls'
 
-WSGI_APPLICATION = 'wsgi.application'
+WSGI_APPLICATION = 'settings.wsgi.application'
 
 # Default primary key field type
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'

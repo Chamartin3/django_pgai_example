@@ -20,7 +20,7 @@ requires = ["hatchling"]
 build-backend = "hatchling.build"
 
 [tool.uv.sources]
-django-pgai = { path = "/src/plugin", editable = true }
+django-pgai = { path = "/opt/django_pgai", editable = true }
 
 [tool.django]
 settings-module = "settings"

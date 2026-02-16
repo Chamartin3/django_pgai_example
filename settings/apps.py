@@ -3,6 +3,7 @@ Application definition - installed apps configuration
 """
 
 LIBRARY_APPS = [
+    "django_typer",
     "django_pgai",
 ]
 
