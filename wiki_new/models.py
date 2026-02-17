@@ -1,9 +1,9 @@
 from django.db import models
-
-from pgai_django.pgai_fields import VectorizedTextField
+from django_pgai.pgai_fields import VectorizedTextField
 
 
 class WikiArticleMiniLM(models.Model):
+    url = models.TextField(default="")
     title = models.TextField()
     text = VectorizedTextField(
         embedding_model='all-minilm',
@@ -22,6 +22,7 @@ class WikiArticleMiniLM(models.Model):
 
 
 class WikiArticleSnowflake(models.Model):
+    url = models.TextField(default="")
     title = models.TextField()
     text = VectorizedTextField(
         embedding_model='snowflake-arctic-embed',
