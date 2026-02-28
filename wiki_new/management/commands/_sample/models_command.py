@@ -48,7 +48,7 @@ def prepare_models_data() -> ModelListData:
     """
     models_data = []
 
-    for sample_model in ctx.models.SampleModel:
+    for sample_model in ctx.models.sample_model:
         try:
             # Get model class directly from enum
             model_class = sample_model.get_model_class()
@@ -60,7 +60,7 @@ def prepare_models_data() -> ModelListData:
             vectorized_fields = [
                 field
                 for field in model_class._meta.get_fields()
-                if isinstance(field, ctx.types.VectorizedTextField)
+                if isinstance(field, ctx.types.vectorized_text_field)
             ]
 
             if not vectorized_fields:
@@ -75,10 +75,10 @@ def prepare_models_data() -> ModelListData:
 
             config_dict = config.to_dict()
             embedding_model = config_dict.get(
-                ctx.types.ConfigField.EMBEDDING_MODEL.value, "unknown"
+                ctx.types.config_field.EMBEDDING_MODEL.value, "unknown"
             )
             dimensions = config_dict.get(
-                ctx.types.ConfigField.EMBEDDING_DIMENSIONS.value, "unknown"
+                ctx.types.config_field.EMBEDDING_DIMENSIONS.value, "unknown"
             )
 
             # Get all field names
@@ -86,7 +86,7 @@ def prepare_models_data() -> ModelListData:
 
             # Determine vectorization state from percentage
             percentage = status["overall_percentage"]
-            state = ctx.models.VectorizationState.from_percentage(percentage)
+            state = ctx.models.vectorization_state.from_percentage(percentage)
 
             # Build field data for verbose mode
             fields_data = []

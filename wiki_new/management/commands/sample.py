@@ -13,11 +13,7 @@ of this implementation - it's purely a consumer of the plugin's public API.
 
 Command Structure:
     sample
-    ├── models list [--verbose]     # List available test models
-    ├── setup                       # Setup commands group
-    │   ├── build                   # Build sample data
-    │   ├── unbuild                 # Remove sample data
-    │   └── rebuild                 # Rebuild sample data
+    ├── models [--verbose]          # List available test models
     └── usage                       # Usage commands group
         ├── search                  # Basic semantic search
         ├── filter                  # Search with filters
@@ -26,7 +22,7 @@ Command Structure:
             └── cutoff              # Compare cutoff values
 """
 
-from django_typer.management import TyperCommand, group
+from django_typer.management import TyperCommand, command, group
 from typer import Argument, Option
 
 from wiki_new.management.commands._sample.models_command import (
@@ -41,14 +37,9 @@ from ._sample.test.eval import rankingCommand, cutoffCommand
 class Command(TyperCommand):
     help = "Sample commands demonstrating pgai_django usage with wiki_new app"
 
-    # === Models Group ===
-    @group()
-    def models(self):
-        """Model information and configuration commands."""
-        pass
-
-    @models.command("list")
-    def models_list(
+    # === Models Command ===
+    @command()
+    def models(
         self,
         verbose: bool = Option(
             False, "--verbose", "-v", help="Show detailed configuration"
@@ -69,16 +60,10 @@ class Command(TyperCommand):
             snowflake - snowflake-arctic-embed-m (768d) - Enterprise grade
 
         Examples:
-            ./manage.sh sample models list                    # Basic table view
-            ./manage.sh sample models list --verbose         # Detailed config
+            ./manage.sh sample models                        # Basic table view
+            ./manage.sh sample models --verbose              # Detailed config
         """
         return ModelsCommand.list_models(verbose=verbose)
-
-    # === Setup Group ===
-    @group()
-    def setup(self):
-        """Setup commands for building and managing sample data."""
-        pass
 
     # === Usage Group ===
     @group()
@@ -187,7 +172,7 @@ class Command(TyperCommand):
             "text", "--field", "-f", help="Field to search: text, summary"
         ),
         timing: bool = Option(False, "--timing", help="Show timing information"),
-        limit: int = Option(10, "--limit", "-l", help="Maximum results per test"),
+        limit: int = Option(5, "--limit", "-l", help="Maximum results per test"),
     ):
         """
         Evaluate different ranking strategies.
