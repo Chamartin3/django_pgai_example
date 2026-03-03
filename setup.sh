@@ -131,7 +131,7 @@ cmd_build() {
     done
 
     print_header
-    print_info "Building wiki_new sample application..."
+    print_info "Building pgai_example sample application..."
     echo ""
 
     # Check services
@@ -141,8 +141,8 @@ cmd_build() {
 
     # Create migrations
     if [ "$skip_migrations" = false ]; then
-        print_info "Creating migrations for wiki_new..."
-        ./manage.sh makemigrations wiki_new
+        print_info "Creating migrations for pgai_example..."
+        ./manage.sh makemigrations pgai_example
         echo ""
     else
         print_warning "Skipping migration generation (--skip-migrations)"
@@ -170,8 +170,8 @@ cmd_build() {
     print_success "Build complete!"
     echo ""
     print_info "Next steps:"
-    echo "  ./manage.sh wiki_new info       # Show model configuration"
-    echo "  ./manage.sh wiki_new search     # Perform semantic search"
+    echo "  ./manage.sh pgai_example info       # Show model configuration"
+    echo "  ./manage.sh pgai_example search     # Perform semantic search"
     echo "  ./setup.sh status               # Check table status"
 }
 
@@ -198,7 +198,7 @@ cmd_unbuild() {
     echo "    - Full database reset (docker volume removed)"
     echo ""
     echo "  Migration Files:"
-    echo "    - wiki_new/migrations/0*.py (all numbered migrations)"
+    echo "    - pgai_example/migrations/0*.py (all numbered migrations)"
     echo ""
     print_warning "⚠️  This action cannot be undone!"
     echo ""
@@ -223,9 +223,9 @@ cmd_unbuild() {
 
     # Delete migration files
     print_info "Deleting migration files..."
-    if [ -d "wiki_new/migrations" ]; then
+    if [ -d "pgai_example/migrations" ]; then
         local count=0
-        for f in wiki_new/migrations/0*.py; do
+        for f in pgai_example/migrations/0*.py; do
             [ -f "$f" ] || continue
             rm -f "$f"
             count=$((count + 1))
@@ -264,7 +264,7 @@ cmd_rebuild() {
     done
 
     print_header
-    print_warning "This will DESTROY all existing wiki_new data and rebuild from scratch."
+    print_warning "This will DESTROY all existing pgai_example data and rebuild from scratch."
     echo ""
 
     # Run unbuild with -y flag
@@ -277,7 +277,7 @@ cmd_rebuild() {
 
 cmd_status() {
     print_header
-    print_info "Checking wiki_new database status..."
+    print_info "Checking pgai_example database status..."
     echo ""
 
     # Check services
@@ -295,7 +295,7 @@ SELECT
     n_live_tup as row_count
 FROM pg_stat_user_tables
 WHERE schemaname = 'public'
-AND tablename LIKE 'wiki_new_%'
+AND tablename LIKE 'pgai_example_%'
 ORDER BY tablename;
 EOF
 
@@ -316,7 +316,7 @@ cmd_help() {
     echo -e "      --skip-migrations     Skip migration generation"
     echo -e "      --skip-migrate        Skip running migrations"
     echo -e "      --skip-seed           Skip data loading"
-    echo -e "      --model MODEL         Model to use: minilm, snowflake, or all (default: all)"
+    echo -e "      --model MODEL         Model to use: minilm, snowflake, movies-qwen, movies-mxbai, or all"
     echo -e "      --batches N           Number of batches to load (default: 10)"
     echo ""
     echo -e "  ${MAGENTA}unbuild${NC}                 ${RED}DESTRUCTIVE:${NC} Full database reset"
@@ -325,7 +325,7 @@ cmd_help() {
     echo -e "    Actions:"
     echo -e "      - Stops all services"
     echo -e "      - Removes database volume (full reset)"
-    echo -e "      - Deletes wiki_new/migrations/0*.py"
+    echo -e "      - Deletes pgai_example/migrations/0*.py"
     echo ""
     echo -e "  ${MAGENTA}rebuild${NC}                 Clean unbuild + build sequence"
     echo -e "    Runs: unbuild -y, then build with passed options"

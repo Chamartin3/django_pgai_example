@@ -33,3 +33,4 @@ coverage.xml
 .DS_Store
 node_modules/
 uv.lock
+workdir/

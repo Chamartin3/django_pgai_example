@@ -26,7 +26,7 @@ django-pgai = { path = "/opt/django_pgai", editable = true }
 settings-module = "settings"
 
 [tool.hatch.build.targets.wheel]
-packages = ["wiki_new", "settings"]
+packages = ["pgai_example", "settings"]
 
 [tool.ruff]
 exclude = [".git", ".venv", "__pycache__", "migrations"]
@@ -41,4 +41,4 @@ ignore = ["E501", "B008", "DJ001"]
 "__init__.py" = ["F401"]
 
 [tool.ruff.lint.isort]
-known-first-party = ["wiki_new", "settings"]
+known-first-party = ["pgai_example", "settings"]

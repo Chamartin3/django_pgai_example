@@ -8,7 +8,7 @@ LIBRARY_APPS = [
 ]
 
 PROJECT_APPS = [
-    "wiki_new",
+    "pgai_example",
 ]
 
 INSTALLED_APPS = [
