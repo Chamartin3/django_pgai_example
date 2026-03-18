@@ -24,6 +24,9 @@ class SampleRendererRegistry(Enum):
     MESSAGE = 'message.MessageRenderer'
     SEED = 'seed.SeedRenderer'
     PROMPT_SEED_OPTIONS = 'prompt_seed_options.PromptSeedOptionsRenderer'
+    ANNOTATE = 'annotate.AnnotateRenderer'
+    RANK = 'rank.RankRenderer'
+    STATS = 'stats.StatsRenderer'
 
     def __init__(self, component_path: str):
         """Initialize registry entry with component path."""

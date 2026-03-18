@@ -10,11 +10,14 @@ Usage:
 
 from .base import CLIComponent
 from .components import (
+    AnnotateRenderer,
     EvalRenderer,
     ListRenderer,
     MessageRenderer,
+    RankRenderer,
     SearchRenderer,
     SeedRenderer,
+    StatsRenderer,
 )
 from .registry import (
     CLIComponentRegistry,
@@ -29,9 +32,12 @@ __all__ = [
     'CLIComponentRegistry',
     'CLIRenderer',
     'CLIComponent',
+    'AnnotateRenderer',
     'EvalRenderer',
     'ListRenderer',
     'MessageRenderer',
+    'RankRenderer',
     'SearchRenderer',
     'SeedRenderer',
+    'StatsRenderer',
 ]
