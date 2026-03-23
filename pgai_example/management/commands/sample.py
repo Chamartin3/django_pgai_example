@@ -29,8 +29,11 @@ from pgai_example.management.commands._sample.models_command import (
     ModelsCommand,
 )
 
+from ._sample.usage import annotate as annotate_adapter
 from ._sample.usage import filter as filter_adapter
+from ._sample.usage import rank as rank_adapter
 from ._sample.usage import search as search_adapter
+from ._sample.usage import stats as stats_adapter
 from ._sample.usage.eval import rankingCommand, cutoffCommand
 
 
@@ -143,6 +146,75 @@ class Command(TyperCommand):
             rank_by=rank_by,
             limit=limit,
         )
+
+    @usage.command("annotate")
+    def usage_annotate(
+        self,
+        query: str = Argument(..., help="Search query string"),
+        variant: str = Option(
+            "wk-minilm",
+            "--variant",
+            "-v",
+            help="Vectorizer variant: wk-minilm, wk-snow, mv-qwen, mv-mxbai",
+        ),
+        limit: int = Option(10, "--limit", "-l", help="Maximum results"),
+    ):
+        """
+        Annotate queryset with semantic scores (demo of semantic_score expression).
+
+        Examples:
+            ./manage.sh sample usage annotate "machine learning"
+            ./manage.sh sample usage annotate "AI" --variant wk-snow --limit 20
+        """
+        return annotate_adapter.annotate(
+            query=query,
+            variant=variant,
+            limit=limit,
+        )
+
+    @usage.command("rank")
+    def usage_rank(
+        self,
+        query: str = Argument(..., help="Search query string"),
+        variant: str = Option(
+            "wk-minilm",
+            "--variant",
+            "-v",
+            help="Vectorizer variant: wk-minilm, wk-snow, mv-qwen, mv-mxbai",
+        ),
+        limit: int = Option(10, "--limit", "-l", help="Maximum results"),
+    ):
+        """
+        Rank queryset using the semantic_rank manager method.
+
+        Examples:
+            ./manage.sh sample usage rank "machine learning"
+            ./manage.sh sample usage rank "AI" --variant mv-qwen --limit 5
+        """
+        return rank_adapter.rank(
+            query=query,
+            variant=variant,
+            limit=limit,
+        )
+
+    @usage.command("stats")
+    def usage_stats(
+        self,
+        variant: str = Option(
+            "all",
+            "--variant",
+            "-v",
+            help="Vectorizer variant filter (or 'all')",
+        ),
+    ):
+        """
+        Show vectorization progress per model and field.
+
+        Examples:
+            ./manage.sh sample usage stats
+            ./manage.sh sample usage stats --variant wk-minilm
+        """
+        return stats_adapter.stats(variant=variant)
 
     # === Eval Sub-group under Usage ===
     @usage.group()
