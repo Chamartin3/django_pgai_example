@@ -1,5 +1,5 @@
 from django.db import models
-from django_pgai.pgai_fields import VectorizedTextField
+from django_pgai.fields import VectorizedTextField
 
 
 class WikiArticleMiniLM(models.Model):

@@ -3,7 +3,7 @@
 
 """Django field configuration extraction for sample test command."""
 
-from django_pgai.pgai_fields import VectorizedTextField
+from django_pgai.fields import VectorizedTextField
 
 
 def extract_field_config(model_class, field_name: str) -> dict | None:

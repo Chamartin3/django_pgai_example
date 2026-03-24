@@ -44,7 +44,7 @@ from typing import Callable
 from django_pgai.config import ConfigField
 from django_pgai.evaluation import FilterEvaluation, SearchEvaluation
 from django_pgai.models import Vectorizer
-from django_pgai.pgai_fields import VectorizedTextField
+from django_pgai.fields import VectorizedTextField
 from rich.console import Console
 from rich.panel import Panel
 from rich.table import Table
@@ -463,11 +463,6 @@ class CLIContext:
             Wrapped function with context injection and error handling
         '''
         return self._command_decorators.command_handler(func)
-
-    def get_model_from_string(self, model_key):
-        '''Get Django model class from string key.'''
-        return get_model_from_string(model_key)
-
 
     def get_vectorization_status(self, model_class):
         '''Get vectorization status for a model.'''
