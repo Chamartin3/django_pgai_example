@@ -25,6 +25,7 @@ class Migration(migrations.Migration):
             field_name='text',
             vectorizer_name='pgai_example_wikiarticleminilm_text_vectorizer',
             config={
+                    'embedding_provider': 'ollama',
                     'embedding_model': 'all-minilm',
                     'embedding_dimensions': 384,
                     'chunking_method': 'recursive',
@@ -38,6 +39,7 @@ class Migration(migrations.Migration):
             field_name='text',
             vectorizer_name='pgai_example_wikiarticlesnowflake_text_vectorizer',
             config={
+                    'embedding_provider': 'ollama',
                     'embedding_model': 'snowflake-arctic-embed',
                     'embedding_dimensions': 1024,
                     'chunking_method': 'recursive',
@@ -51,6 +53,7 @@ class Migration(migrations.Migration):
             field_name='overview',
             vectorizer_name='pgai_example_movieqwen_overview_vectorizer',
             config={
+                    'embedding_provider': 'ollama',
                     'embedding_model': 'qwen3-embedding',
                     'embedding_dimensions': 1024,
                     'chunking_method': 'recursive',
@@ -64,6 +67,7 @@ class Migration(migrations.Migration):
             field_name='overview',
             vectorizer_name='pgai_example_moviemxbai_overview_vectorizer',
             config={
+                    'embedding_provider': 'ollama',
                     'embedding_model': 'mxbai-embed-large:latest',
                     'embedding_dimensions': 1024,
                     'chunking_method': 'recursive',
