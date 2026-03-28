@@ -96,8 +96,8 @@ cmd_build() {
     local skip_migrations=false
     local skip_migrate=false
     local skip_seed=false
-    local model="all"
-    local batches=10
+    local variant="all"
+    local batch_size=100
     local remaining_args=()
 
     # Parse arguments
@@ -115,12 +115,12 @@ cmd_build() {
             skip_seed=true
             shift
             ;;
-        --model)
-            model="$2"
+        --variant | --model)
+            variant="$2"
             shift 2
             ;;
-        --batches)
-            batches="$2"
+        --batch-size | --batches)
+            batch_size="$2"
             shift 2
             ;;
         *)
@@ -159,9 +159,15 @@ cmd_build() {
 
     # Seed data
     if [ "$skip_seed" = false ]; then
-        print_info "Loading sample Wikipedia data..."
-        print_info "Model: $model, Batches: $batches"
-        ./manage.sh seed --model "$model" --batches "$batches"
+        case "$variant" in
+            minilm) variant="wk-minilm" ;;
+            snowflake) variant="wk-snow" ;;
+            movies-qwen) variant="mv-qwen" ;;
+            movies-mxbai) variant="mv-mxbai" ;;
+        esac
+        print_info "Loading sample data..."
+        print_info "Variant: $variant, Batch size: $batch_size"
+        ./manage.sh seed --variant "$variant" --batch-size "$batch_size"
         echo ""
     else
         print_warning "Skipping data seeding (--skip-seed)"

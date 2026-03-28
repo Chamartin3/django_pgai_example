@@ -70,7 +70,7 @@ services:
       - DJANGO_SETTINGS_MODULE=settings
     volumes:
       - .:/src
-      - ${DJANGO_PGAI_PATH}:/opt/django_pgai:ro
+      - ${DJANGO_PGAI_PATH}:/opt/django_pgai
       - uv-cache:/root/.cache/uv
       - uv-venv:/src/.venv
     ports:

@@ -181,6 +181,18 @@ def handle_seed(
             )
             return
 
+    # Multiple SampleModels can share a source table (different vectorizers
+    # over the same column). Seed each table only once — the first SampleModel
+    # encountered for a given table is the seeder; the rest are no-ops.
+    seen_tables: set[str] = set()
+    deduped: list[SampleModel] = []
+    for sample_model in models_to_load:
+        if sample_model.table_name in seen_tables:
+            continue
+        seen_tables.add(sample_model.table_name)
+        deduped.append(sample_model)
+    models_to_load = deduped
+
     table_results: list[SeedTableResult] = []
     success_count = 0
     skipped_count = 0

@@ -1,18 +1,18 @@
-"""Test command dispatcher setup."""
+"""Usage command tree.
 
-# Import command classes for dispatcher
-from .annotate import annotate
-from .eval.ranking import rankingCommand
-from .filter import filter
-from .rank import rank
-from .search import search
-from .stats import stats
+Three groups:
+- `api/`       - one plugin API per command (single variant)
+- `compare/models/` - cross-vectorizer comparisons (same query, all variants)
+- `compare/strategies/` - strategy comparisons (one variant, different knobs)
+"""
+from .api import annotate, filter, find, multi_rank
+from .compare.strategies import rankByCommand, thresholdCommand
 
 __all__ = [
     "annotate",
     "filter",
-    "rank",
-    "rankingCommand",
-    "search",
-    "stats",
+    "find",
+    "multi_rank",
+    "rankByCommand",
+    "thresholdCommand",
 ]

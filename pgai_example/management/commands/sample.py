@@ -33,7 +33,6 @@ from ._sample.usage import annotate as annotate_adapter
 from ._sample.usage import filter as filter_adapter
 from ._sample.usage import rank as rank_adapter
 from ._sample.usage import search as search_adapter
-from ._sample.usage import stats as stats_adapter
 from ._sample.usage.eval import rankingCommand, cutoffCommand
 
 
@@ -79,10 +78,10 @@ class Command(TyperCommand):
         self,
         query: str = Argument(..., help="Search query string"),
         variant: str = Option(
-            "wk-minilm",
+            "mv-qwen",
             "--variant",
             "-v",
-            help="Vectorizer variant: wk-minilm, wk-snow, mv-qwen, mv-mxbai",
+            help="Vectorizer variant: mv-qwen, mv-mxbai, mv-minilm, mv-snowflake",
         ),
         threshold: float | None = Option(
             None, "--threshold", "-t", help="Similarity threshold (0.0-1.0)"
@@ -116,10 +115,10 @@ class Command(TyperCommand):
         self,
         query: str = Argument(..., help="Search query string"),
         variant: str = Option(
-            "wk-minilm",
+            "mv-qwen",
             "--variant",
             "-v",
-            help="Vectorizer variant: wk-minilm, wk-snow, mv-qwen, mv-mxbai",
+            help="Vectorizer variant: mv-qwen, mv-mxbai, mv-minilm, mv-snowflake",
         ),
         threshold: float | None = Option(
             None, "--threshold", "-t", help="Similarity threshold (0.0-1.0)"
@@ -152,10 +151,10 @@ class Command(TyperCommand):
         self,
         query: str = Argument(..., help="Search query string"),
         variant: str = Option(
-            "wk-minilm",
+            "mv-qwen",
             "--variant",
             "-v",
-            help="Vectorizer variant: wk-minilm, wk-snow, mv-qwen, mv-mxbai",
+            help="Vectorizer variant: mv-qwen, mv-mxbai, mv-minilm, mv-snowflake",
         ),
         limit: int = Option(10, "--limit", "-l", help="Maximum results"),
     ):
@@ -164,7 +163,7 @@ class Command(TyperCommand):
 
         Examples:
             ./manage.sh sample usage annotate "machine learning"
-            ./manage.sh sample usage annotate "AI" --variant wk-snow --limit 20
+            ./manage.sh sample usage annotate "AI" --variant mv-mxbai --limit 20
         """
         return annotate_adapter.annotate(
             query=query,
@@ -177,10 +176,10 @@ class Command(TyperCommand):
         self,
         query: str = Argument(..., help="Search query string"),
         variant: str = Option(
-            "wk-minilm",
+            "mv-qwen",
             "--variant",
             "-v",
-            help="Vectorizer variant: wk-minilm, wk-snow, mv-qwen, mv-mxbai",
+            help="Vectorizer variant: mv-qwen, mv-mxbai, mv-minilm, mv-snowflake",
         ),
         limit: int = Option(10, "--limit", "-l", help="Maximum results"),
     ):
@@ -197,25 +196,6 @@ class Command(TyperCommand):
             limit=limit,
         )
 
-    @usage.command("stats")
-    def usage_stats(
-        self,
-        variant: str = Option(
-            "all",
-            "--variant",
-            "-v",
-            help="Vectorizer variant filter (or 'all')",
-        ),
-    ):
-        """
-        Show vectorization progress per model and field.
-
-        Examples:
-            ./manage.sh sample usage stats
-            ./manage.sh sample usage stats --variant wk-minilm
-        """
-        return stats_adapter.stats(variant=variant)
-
     # === Eval Sub-group under Usage ===
     @usage.group()
     def eval(self):
@@ -227,10 +207,10 @@ class Command(TyperCommand):
         self,
         query: str = Argument(..., help="Search query string"),
         variant: str = Option(
-            "wk-minilm",
+            "mv-qwen",
             "--variant",
             "-v",
-            help="Vectorizer variant: wk-minilm, wk-snow, mv-qwen, mv-mxbai",
+            help="Vectorizer variant: mv-qwen, mv-mxbai, mv-minilm, mv-snowflake",
         ),
         timing: bool = Option(False, "--timing", help="Show timing information"),
         limit: int = Option(5, "--limit", "-l", help="Maximum results per test"),
@@ -257,10 +237,10 @@ class Command(TyperCommand):
         self,
         query: str = Argument(..., help="Search query string"),
         variant: str = Option(
-            "wk-minilm",
+            "mv-qwen",
             "--variant",
             "-v",
-            help="Vectorizer variant: wk-minilm, wk-snow, mv-qwen, mv-mxbai",
+            help="Vectorizer variant: mv-qwen, mv-mxbai, mv-minilm, mv-snowflake",
         ),
         custom: str = Option(
             "", "--custom", "-c", help="Custom cutoff values (comma-separated)"

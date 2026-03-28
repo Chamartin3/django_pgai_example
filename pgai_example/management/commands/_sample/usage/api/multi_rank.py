@@ -1,29 +1,28 @@
-"""Annotate command - semantic score annotation demo."""
+"""Rank command - semantic_rank queryset demo."""
 
-from django_pgai.db.semantic_search.expressions import semantic_score
 from typer import Argument, Option
 
 from pgai_example.management.context import ctx
 from pgai_example.management.data_models import (
-    AnnotateResultData,
-    AnnotateResultsData,
+    RankResultData,
+    RankResultsData,
 )
 
 
-def handle_annotate(
+def handle_rank(
     query: str,
     variant: str,
     limit: int,
 ) -> None:
-    """Handle annotate command."""
+    """Handle rank command."""
     try:
-        data = prepare_annotate_data(
+        data = prepare_rank_data(
             query=query,
             variant=variant,
             limit=limit,
         )
 
-        ctx.render.annotate.print(data)
+        ctx.render.rank.print(data)
 
     except KeyError:
         available = ", ".join(ctx.models.sample_model.all_keys())
@@ -31,36 +30,31 @@ def handle_annotate(
             f"Unknown variant: '{variant}'\n\nAvailable variants: {available}"
         )
     except Exception as e:
-        ctx.render.message.error(f"Annotate failed: {e}")
+        ctx.render.message.error(f"Rank failed: {e}")
 
 
-def prepare_annotate_data(
+def prepare_rank_data(
     query: str,
     variant: str,
     limit: int,
-) -> AnnotateResultsData:
-    """Prepare annotate data (business logic)."""
+) -> RankResultsData:
+    """Prepare rank data (business logic)."""
     sample_model = ctx.models.sample_model.from_key(variant)
     model_class = sample_model.get_model_class()
     field_name = sample_model.field_name
 
-    # NOTE: Thiss sohudl not anotate itself but it should be using the SemanticSearchQuerySet.
-    # Que queryst annotates the score This is just for demo purposes.
+    qs = model_class.objects.semantic_rank(query, fields=[field_name])[:limit]
 
-    qs = model_class.objects.annotate(score=semantic_score(field_name, query)).order_by(
-        "-score"
-    )[:limit]
-
-    results: list[AnnotateResultData] = [
-        AnnotateResultData(
+    results: list[RankResultData] = [
+        RankResultData(
             pk=instance.pk,
             title=ctx.helpers.extract_title(instance),
-            score=float(instance.score),
+            rank=idx,
         )
-        for instance in qs
+        for idx, instance in enumerate(qs, 1)
     ]
 
-    return AnnotateResultsData(
+    return RankResultsData(
         results=results,
         query=query,
         model_name=model_class.__name__,
@@ -69,26 +63,26 @@ def prepare_annotate_data(
     )
 
 
-class AnnotateCommand:
-    """Annotate command adapter for Typer."""
+class RankCommand:
+    """Rank command adapter for Typer."""
 
     @staticmethod
-    def annotate(
+    def rank(
         query: str = Argument(..., help="Search query"),
         variant: str = Option(
-            "wk-minilm",
+            "mv-qwen",
             "--variant",
             "-v",
-            help="Vectorizer variant: wk-minilm, wk-snow, mv-qwen, mv-mxbai",
+            help="Vectorizer variant: mv-qwen, mv-mxbai, mv-minilm, mv-snowflake",
         ),
         limit: int = Option(10, "--limit", "-l", help="Maximum results"),
     ):
-        """Annotate queryset with semantic scores."""
-        handle_annotate(
+        """Rank queryset using multi-field semantic score."""
+        handle_rank(
             query=query,
             variant=variant,
             limit=limit,
         )
 
 
-annotate = AnnotateCommand()
+rank = RankCommand()

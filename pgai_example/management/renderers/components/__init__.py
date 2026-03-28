@@ -10,7 +10,6 @@ from .message import MessageRenderer
 from .rank import RankRenderer
 from .search import SearchRenderer
 from .seed import SeedRenderer
-from .stats import StatsRenderer
 
 __all__ = [
     'AnnotateRenderer',
@@ -20,5 +19,4 @@ __all__ = [
     'RankRenderer',
     'SearchRenderer',
     'SeedRenderer',
-    'StatsRenderer',
 ]

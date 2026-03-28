@@ -18,4 +18,7 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
-] + LIBRARY_APPS + PROJECT_APPS
+# PROJECT_APPS placed before LIBRARY_APPS so that overrides in
+# pgai_example/management/commands/ take precedence over django_pgai's
+# (Django picks the first app in INSTALLED_APPS that provides a command).
+] + PROJECT_APPS + LIBRARY_APPS

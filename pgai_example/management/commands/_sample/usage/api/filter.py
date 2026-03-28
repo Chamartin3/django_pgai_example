@@ -122,10 +122,10 @@ class FilterCommand:
     def filter(
         query: str = Argument(..., help="Search query"),
         variant: str = Option(
-            "wk-minilm",
+            "mv-qwen",
             "--variant",
             "-v",
-            help="Vectorizer variant: wk-minilm, wk-snow, mv-qwen, mv-mxbai",
+            help="Vectorizer variant: mv-qwen, mv-mxbai, mv-minilm, mv-snowflake",
         ),
         threshold: float | None = Option(
             None, "--threshold", "-t", help="Similarity threshold (0.0-1.0)"

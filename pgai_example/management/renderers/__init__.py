@@ -17,7 +17,6 @@ from .components import (
     RankRenderer,
     SearchRenderer,
     SeedRenderer,
-    StatsRenderer,
 )
 from .registry import (
     CLIComponentRegistry,
@@ -39,5 +38,4 @@ __all__ = [
     'RankRenderer',
     'SearchRenderer',
     'SeedRenderer',
-    'StatsRenderer',
 ]

@@ -1,9 +1,9 @@
-"""Evaluate ranking strategies - eval ranking command.
+"""Evaluate cutoff filtering - eval cutoff command.
 
 Architecture:
-- handle_ranking(): Entry point handler function
-- prepare_ranking_data(): Business logic function
-- ranking class: Typer dispatcher adapter (delegates to handle_ranking)
+- handle_cutoff(): Entry point handler function
+- prepare_cutoff_data(): Business logic function
+- CutoffCommand class: Typer dispatcher adapter (delegates to handle_cutoff)
 """
 
 from typer import Argument, Option
@@ -12,18 +12,20 @@ from pgai_example.management.context import ctx
 
 
 # === Handler Function ===
-def handle_ranking(
+def handle_cutoff(
     query: str,
     variant: str,
+    custom: str | None = None,
     timing: bool = False,
     limit: int = 5,
 ) -> None:
-    """Handle ranking command with clean separation."""
+    """Handle cutoff command with clean separation."""
     try:
         # Business logic: prepare typed data
-        data = prepare_ranking_data(
+        data = prepare_cutoff_data(
             query=query,
             variant=variant,
+            custom=custom,
             limit=limit,
         )
 
@@ -42,21 +44,23 @@ def handle_ranking(
             f"Unknown variant: '{variant}'\n\nAvailable variants: {available}"
         )
     except Exception as e:
-        ctx.render.message.error(f"Ranking evaluation failed: {e}")
+        ctx.render.message.error(f"Cutoff evaluation failed: {e}")
 
 
 # === Business Logic Function ===
-def prepare_ranking_data(
+def prepare_cutoff_data(
     query: str,
     variant: str,
+    custom: str | None,
     limit: int,
 ) -> dict:
     """
-    Prepare ranking evaluation data (business logic only).
+    Prepare cutoff evaluation data (business logic only).
 
     Args:
         query: Search query string
         variant: Vectorizer variant (e.g., 'minilm', 'movies-qwen')
+        custom: Custom cutoff values (comma-separated)
         limit: Maximum results per test
 
     Returns:
@@ -74,8 +78,14 @@ def prepare_ranking_data(
     _, incomplete_vectorizers = ctx.helpers.check_vectorization_progress(model_class, field)
 
     # Create evaluation
-    evaluation = ctx.types.search_evaluation(model_class, field_name=field)
-    evaluation.add_preset_find_tests()
+    evaluation = ctx.types.filter_evaluation(model_class, field_name=field, query=query)
+    evaluation.add_preset_tests()
+
+    # Add custom cutoff values if specified
+    if custom:
+        custom_cutoffs = [float(t.strip()) for t in custom.split(",")]
+        for cutoff in custom_cutoffs:
+            evaluation.add_custom_test(cutoff)
 
     # Run tests
     evaluation.run(query=query, limit=limit)
@@ -91,38 +101,42 @@ def prepare_ranking_data(
 
 
 # === Typer Adapter Class ===
-class RankingCommand:
-    """Ranking command adapter for Typer - evaluate ranking strategies."""
+class CutoffCommand:
+    """Cutoff command adapter for Typer - evaluate similarity cutoff levels."""
 
     @staticmethod
-    def ranking(
+    def cutoff(
         query: str = Argument(..., help="Search query"),
         variant: str = Option(
-            "wk-minilm",
+            "mv-qwen",
             "--variant",
             "-v",
-            help="Vectorizer variant: wk-minilm, wk-snow, mv-qwen, mv-mxbai",
+            help="Vectorizer variant: mv-qwen, mv-mxbai, mv-minilm, mv-snowflake",
+        ),
+        custom: str = Option(
+            None, "--custom", "-c", help="Custom cutoff values (comma-separated)"
         ),
         timing: bool = Option(False, "--timing", help="Show timing information"),
         limit: int = Option(5, "--limit", "-l", help="Maximum results per test"),
     ):
         """
-        Evaluate different ranking strategies.
+        Evaluate different similarity cutoff levels.
 
-        Tests how different ranking approaches (best, relevance, count) affect search results.
+        Tests how different cutoff values affect search results.
 
         Examples:
-            ./manage.sh sample usage eval ranking "machine learning"
-            ./manage.sh sample usage eval ranking "AI" --timing --limit 15
+            ./manage.sh sample usage eval cutoff "machine learning"
+            ./manage.sh sample usage eval cutoff "AI" --custom 0.6,0.7,0.8 --timing
         """
         # Delegate to handler
-        handle_ranking(
+        handle_cutoff(
             query=query,
             variant=variant,
+            custom=custom,
             timing=timing,
             limit=limit,
         )
 
 
 # === Module Export ===
-rankingCommand = RankingCommand()
+cutoffCommand = CutoffCommand()

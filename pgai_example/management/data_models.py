@@ -289,21 +289,6 @@ class RankResultsData(TypedDict):
     limit: int
 
 
-class StatsRowData(TypedDict):
-    """Single row in vectorization stats table."""
-    model_name: str
-    field_name: str
-    total_rows: int
-    embedded_rows: int
-    percent: float
-
-
-class StatsData(TypedDict):
-    """Complete stats command results."""
-    rows: list[StatsRowData]
-    variant: str
-
-
 __all__ = [
     'VectorizationStatus',
     'VectorizationState',
@@ -337,6 +322,4 @@ __all__ = [
     'AnnotateResultsData',
     'RankResultData',
     'RankResultsData',
-    'StatsRowData',
-    'StatsData',
 ]

@@ -1,7 +1,13 @@
-from django.contrib import admin
-from pgai_example.models import WikiArticleMiniLM, WikiArticleSnowflake, MovieQwen, MovieMxbai
+"""Admin registrations for the example app.
 
-admin.site.register(WikiArticleMiniLM)
-admin.site.register(WikiArticleSnowflake)
-admin.site.register(MovieQwen)
-admin.site.register(MovieMxbai)
+The plugin owns its own admin surface — we just opt in via
+``register_admin`` and register our source model alongside it.
+"""
+
+from django.contrib import admin
+from django_pgai.contrib.admin import register_admin
+
+from pgai_example.models import Movie
+
+admin.site.register(Movie)
+register_admin(admin.site)

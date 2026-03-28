@@ -108,3 +108,13 @@ STATIC_ROOT = BASE_DIR / "staticfiles"
 # Media files
 MEDIA_URL = "/media/"
 MEDIA_ROOT = BASE_DIR / "media"
+
+# =============================================================================
+# django-pgai status semantics
+# =============================================================================
+# A vectorizer is reported as "active" when its last successful batch happened
+# within this many seconds AND there are still pending items in the queue.
+# Outside this window, a vectorizer with pending items is reported as "queued".
+# Tune higher for slow embedding models (e.g. snowflake, mxbai ~4min/batch),
+# lower if you want a tighter "currently producing embeddings" definition.
+PGAI_ACTIVE_WINDOW_SECONDS = 600
