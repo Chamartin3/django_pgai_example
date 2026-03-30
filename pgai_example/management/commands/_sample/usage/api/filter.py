@@ -1,150 +1,103 @@
-"""Filter command - semantic search with filters."""
+"""Filter command - structured ORM filter combined with semantic ranking.
 
+Demonstrates: composing a normal Django `.filter()` (here: `genres__icontains`)
+with the `semantic_score()` expression, then ordering by similarity. This is
+the only usage command that mixes structured filtering with semantic ranking.
+"""
+
+from django_pgai.db.semantic_search.expressions import semantic_score
 from typer import Argument, Option
 
 from pgai_example.management.context import ctx
 from pgai_example.management.data_models import (
-    SearchResultData,
-    SearchResultsData,
+    AnnotateResultData,
+    AnnotateResultsData,
 )
 
 
-# === Handler Function ===
 def handle_filter(
     query: str,
     variant: str,
-    threshold: float | None = None,
-    rank_by: str = "best",
-    limit: int = 10,
+    genre: str,
+    limit: int,
 ) -> None:
-    """Handle filter command with clean separation."""
+    """Handle filter command."""
     try:
-        # Business logic: prepare typed data
         data = prepare_filter_data(
             query=query,
             variant=variant,
-            threshold=threshold,
-            rank_by=rank_by,
+            genre=genre,
             limit=limit,
         )
-
-        # Display logic: render using registry
-        ctx.render.search.render_search_results(
-            results=data["results"],
-            query=data["query"],
-            model_name=data["model_name"],
-            field=data["field"],
-            threshold=data["threshold"],
-            rank_by=data["rank_by"],
-        )
-
+        ctx.render.annotate.print(data)
     except KeyError:
         available = ", ".join(ctx.models.sample_model.all_keys())
         ctx.render.message.error(
             f"Unknown variant: '{variant}'\n\nAvailable variants: {available}"
         )
-    except ctx.exceptions.MissingSimilarInError as e:
-        ctx.render.message.error(str(e))
     except Exception as e:
         ctx.render.message.error(f"Filter failed: {e}")
 
 
-# === Business Logic Function ===
 def prepare_filter_data(
     query: str,
     variant: str,
-    threshold: float | None,
-    rank_by: str,
+    genre: str,
     limit: int,
-) -> SearchResultsData:
-    """
-    Prepare filter search data (business logic only).
-
-    Args:
-        query: Search query string
-        variant: Vectorizer variant (e.g., 'minilm', 'movies-qwen')
-        threshold: Similarity threshold
-        rank_by: Ranking strategy
-        limit: Maximum results
-
-    Returns:
-        SearchResultsData with typed structure
-
-    Raises:
-        KeyError: If variant not found
-        MissingSimilarInError: If model has no similar_in manager
-    """
-    # Get sample model from variant key
+) -> AnnotateResultsData:
+    """Filter by genre, annotate semantic score, order by score."""
     sample_model = ctx.models.sample_model.from_key(variant)
     model_class = sample_model.get_model_class()
-    field = sample_model.field_name
+    field_name = sample_model.field_name
 
-    # Check vectorization progress via context helpers (non-blocking)
-    _, incomplete = ctx.helpers.check_vectorization_progress(model_class, field)
-
-    # Execute search
-    field_accessor = getattr(model_class.similar_in, field)
-    results = field_accessor.find(
-        query,
-        limit=limit,
-        threshold=threshold,
-        rank_by=rank_by,
+    qs = (
+        model_class.objects
+        .filter(genres__icontains=genre)
+        .annotate(score=semantic_score(field_name, query))
+        .order_by("-score")[:limit]
     )
 
-    # Transform to typed data structure
-    search_results: list[SearchResultData] = [
-        SearchResultData(
-            pk=result.instance.pk,
-            title=ctx.helpers.extract_title(result.instance),
-            score=result.score,
-            relevance=result.relevance,
-            match_count=result.match_count,
+    results: list[AnnotateResultData] = [
+        AnnotateResultData(
+            pk=instance.pk,
+            title=ctx.helpers.extract_title(instance),
+            score=float(instance.score),
         )
-        for result in results
+        for instance in qs
     ]
 
-    return SearchResultsData(
-        results=search_results,
-        query=query,
+    return AnnotateResultsData(
+        results=results,
+        query=f"{query}  (genre~={genre!r})",
         model_name=model_class.__name__,
-        field=field,
-        threshold=threshold,
-        rank_by=rank_by,
-        total_count=len(search_results),
+        field=field_name,
+        limit=limit,
     )
 
 
-# === Typer Command Class (Adapter) ===
 class FilterCommand:
-    """Filter command adapter for Typer - semantic search with filters."""
+    """Typer adapter for the `filter` command."""
 
     @staticmethod
     def filter(
         query: str = Argument(..., help="Search query"),
         variant: str = Option(
-            "mv-qwen",
-            "--variant",
-            "-v",
+            "mv-qwen", "--variant", "-v",
             help="Vectorizer variant: mv-qwen, mv-mxbai, mv-minilm, mv-snowflake",
         ),
-        threshold: float | None = Option(
-            None, "--threshold", "-t", help="Similarity threshold (0.0-1.0)"
-        ),
-        rank_by: str = Option(
-            "best", "--rank-by", "-r", help="Ranking: best, relevance, count"
+        genre: str = Option(
+            "Action", "--genre", "-g",
+            help="Filter by genre (icontains match on movie.genres)",
         ),
         limit: int = Option(10, "--limit", "-l", help="Maximum results"),
     ):
-        """Search with filters using the similar_in API."""
-        # Delegate to handler
+        """Combine an ORM filter with semantic ranking."""
         handle_filter(
             query=query,
             variant=variant,
-            threshold=threshold,
-            rank_by=rank_by,
+            genre=genre,
             limit=limit,
         )
 
 
-# === Module Export ===
 filter = FilterCommand()
