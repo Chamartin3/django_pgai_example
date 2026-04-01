@@ -15,11 +15,15 @@ Command Structure:
     sample
     ├── models [--verbose]          # List available test models
     └── usage                       # Usage commands group
-        ├── search                  # Basic semantic search
-        ├── filter                  # Search with filters
-        └── eval                    # Evaluation commands
-            ├── ranking             # Compare ranking strategies
-            └── cutoff              # Compare cutoff values
+        ├── api                     # One plugin API per command (single variant)
+        │   ├── find                # similar_in.<field>.find()
+        │   ├── filter              # ORM .filter() + semantic_score()
+        │   ├── annotate            # raw semantic_score() expression
+        │   └── rank                # objects.semantic_rank() manager method
+        └── compare                 # Cross-cutting comparisons
+            └── strategies          # Same query, one variant, different knobs
+                ├── rank-by         # Compare ranking strategies
+                └── threshold       # Compare similarity thresholds
 """
 
 from django_typer.management import TyperCommand, command, group
@@ -29,11 +33,19 @@ from pgai_example.management.commands._sample.models_command import (
     ModelsCommand,
 )
 
-from ._sample.usage import annotate as annotate_adapter
-from ._sample.usage import filter as filter_adapter
-from ._sample.usage import rank as rank_adapter
-from ._sample.usage import search as search_adapter
-from ._sample.usage.eval import rankingCommand, cutoffCommand
+from pathlib import Path
+
+from ._sample.usage import (
+    annotate as annotate_adapter,
+    demo as demo_adapter,
+    filter as filter_adapter,
+    find as find_adapter,
+    rank as rank_adapter,
+    rankByCommand,
+    resultsCommand,
+    thresholdCommand,
+    timeCommand,
+)
 
 
 class Command(TyperCommand):
@@ -70,198 +82,170 @@ class Command(TyperCommand):
     # === Usage Group ===
     @group()
     def usage(self):
-        """Usage and evaluation commands."""
+        """Usage examples and cross-cutting comparisons."""
         pass
 
-    @usage.command("search")
-    def usage_search(
-        self,
-        query: str = Argument(..., help="Search query string"),
-        variant: str = Option(
-            "mv-qwen",
-            "--variant",
-            "-v",
-            help="Vectorizer variant: mv-qwen, mv-mxbai, mv-minilm, mv-snowflake",
-        ),
-        threshold: float | None = Option(
-            None, "--threshold", "-t", help="Similarity threshold (0.0-1.0)"
-        ),
-        rank_by: str = Option(
-            "best", "--rank-by", "-r", help="Ranking: best, relevance, count"
-        ),
-        limit: int = Option(10, "--limit", "-l", help="Maximum results"),
-    ):
-        """
-        Search for similar instances using the similar_in API.
-
-        Performs semantic search on vectorized text fields and returns
-        ranked results based on embedding similarity.
-
-        Examples:
-            ./manage.sh sample usage search "machine learning"
-            ./manage.sh sample usage search "AI" --variant snowflake --threshold 0.8
-            ./manage.sh sample usage search "Python" --limit 20 --rank-by relevance
-        """
-        return search_adapter.search(
-            query=query,
-            variant=variant,
-            threshold=threshold,
-            rank_by=rank_by,
-            limit=limit,
-        )
-
-    @usage.command("filter")
-    def usage_filter(
-        self,
-        query: str = Argument(..., help="Search query string"),
-        variant: str = Option(
-            "mv-qwen",
-            "--variant",
-            "-v",
-            help="Vectorizer variant: mv-qwen, mv-mxbai, mv-minilm, mv-snowflake",
-        ),
-        threshold: float | None = Option(
-            None, "--threshold", "-t", help="Similarity threshold (0.0-1.0)"
-        ),
-        rank_by: str = Option(
-            "best", "--rank-by", "-r", help="Ranking: best, relevance, count"
-        ),
-        limit: int = Option(10, "--limit", "-l", help="Maximum results"),
-    ):
-        """
-        Search with filters using the similar_in API.
-
-        Performs semantic search with additional filtering capabilities
-        on vectorized text fields.
-
-        Examples:
-            ./manage.sh sample usage filter "machine learning"
-            ./manage.sh sample usage filter "AI" --variant snowflake --threshold 0.75
-        """
-        return filter_adapter.filter(
-            query=query,
-            variant=variant,
-            threshold=threshold,
-            rank_by=rank_by,
-            limit=limit,
-        )
-
-    @usage.command("annotate")
-    def usage_annotate(
-        self,
-        query: str = Argument(..., help="Search query string"),
-        variant: str = Option(
-            "mv-qwen",
-            "--variant",
-            "-v",
-            help="Vectorizer variant: mv-qwen, mv-mxbai, mv-minilm, mv-snowflake",
-        ),
-        limit: int = Option(10, "--limit", "-l", help="Maximum results"),
-    ):
-        """
-        Annotate queryset with semantic scores (demo of semantic_score expression).
-
-        Examples:
-            ./manage.sh sample usage annotate "machine learning"
-            ./manage.sh sample usage annotate "AI" --variant mv-mxbai --limit 20
-        """
-        return annotate_adapter.annotate(
-            query=query,
-            variant=variant,
-            limit=limit,
-        )
-
-    @usage.command("rank")
-    def usage_rank(
-        self,
-        query: str = Argument(..., help="Search query string"),
-        variant: str = Option(
-            "mv-qwen",
-            "--variant",
-            "-v",
-            help="Vectorizer variant: mv-qwen, mv-mxbai, mv-minilm, mv-snowflake",
-        ),
-        limit: int = Option(10, "--limit", "-l", help="Maximum results"),
-    ):
-        """
-        Rank queryset using the semantic_rank manager method.
-
-        Examples:
-            ./manage.sh sample usage rank "machine learning"
-            ./manage.sh sample usage rank "AI" --variant mv-qwen --limit 5
-        """
-        return rank_adapter.rank(
-            query=query,
-            variant=variant,
-            limit=limit,
-        )
-
-    # === Eval Sub-group under Usage ===
+    # --- api/ subgroup: one plugin API per command ---
     @usage.group()
-    def eval(self):
-        """Evaluation commands for ranking and cutoff values."""
+    def api(self):
+        """Single-API demos (one plugin entry point per command)."""
         pass
 
-    @eval.command("ranking")
-    def usage_eval_ranking(
+    @api.command("find")
+    def usage_api_find(
         self,
         query: str = Argument(..., help="Search query string"),
         variant: str = Option(
-            "mv-qwen",
-            "--variant",
-            "-v",
+            "mv-qwen", "--variant", "-v",
+            help="Vectorizer variant: mv-qwen, mv-mxbai, mv-minilm, mv-snowflake",
+        ),
+        threshold: float | None = Option(
+            None, "--threshold", "-t", help="Similarity threshold (0.0-1.0)"
+        ),
+        rank_by: str = Option(
+            "best", "--rank-by", "-r", help="Ranking: best, relevance, count"
+        ),
+        limit: int = Option(10, "--limit", "-l", help="Maximum results"),
+    ):
+        """Find similar instances via `similar_in.<field>.find()`."""
+        return find_adapter.find(
+            query=query, variant=variant, threshold=threshold,
+            rank_by=rank_by, limit=limit,
+        )
+
+    @api.command("filter")
+    def usage_api_filter(
+        self,
+        query: str = Argument(..., help="Search query string"),
+        variant: str = Option(
+            "mv-qwen", "--variant", "-v",
+            help="Vectorizer variant: mv-qwen, mv-mxbai, mv-minilm, mv-snowflake",
+        ),
+        genre: str = Option(
+            "Action", "--genre", "-g",
+            help="Filter by genre (icontains match on movie.genres)",
+        ),
+        limit: int = Option(10, "--limit", "-l", help="Maximum results"),
+    ):
+        """ORM `.filter()` + `semantic_score()` — structured filter + semantic rank."""
+        return filter_adapter.filter(
+            query=query, variant=variant, genre=genre, limit=limit,
+        )
+
+    @api.command("annotate")
+    def usage_api_annotate(
+        self,
+        query: str = Argument(..., help="Search query string"),
+        variant: str = Option(
+            "mv-qwen", "--variant", "-v",
+            help="Vectorizer variant: mv-qwen, mv-mxbai, mv-minilm, mv-snowflake",
+        ),
+        limit: int = Option(10, "--limit", "-l", help="Maximum results"),
+    ):
+        """Raw `semantic_score()` ORM expression on a plain queryset."""
+        return annotate_adapter.annotate(
+            query=query, variant=variant, limit=limit,
+        )
+
+    @api.command("rank")
+    def usage_api_rank(
+        self,
+        query: str = Argument(..., help="Search query string"),
+        variant: str = Option(
+            "mv-qwen", "--variant", "-v",
+            help="Vectorizer variant: mv-qwen, mv-mxbai, mv-minilm, mv-snowflake",
+        ),
+        limit: int = Option(10, "--limit", "-l", help="Maximum results"),
+    ):
+        """Manager method `objects.semantic_rank()` — chainable QuerySet."""
+        return rank_adapter.rank(
+            query=query, variant=variant, limit=limit,
+        )
+
+    # --- compare/ subgroup: cross-cutting comparisons ---
+    @usage.group()
+    def compare(self):
+        """Cross-cutting comparison commands."""
+        pass
+
+    @compare.group()
+    def models(self):
+        """Same query, all vectorizer variants."""
+        pass
+
+    @models.command("results")
+    def usage_compare_models_results(
+        self,
+        query: str = Argument(..., help="Search query"),
+        limit: int = Option(5, "--limit", "-l", help="Top-N per variant"),
+    ):
+        """Side-by-side top-N across all variants."""
+        return resultsCommand.results(query=query, limit=limit)
+
+    @models.command("time")
+    def usage_compare_models_time(
+        self,
+        query: str = Argument(..., help="Search query"),
+        runs: int = Option(5, "--runs", "-n", help="Warm timed runs per variant"),
+        limit: int = Option(10, "--limit", "-l", help="Top-N per call"),
+    ):
+        """Latency benchmark per variant (mean/p50/p95)."""
+        return timeCommand.time(query=query, runs=runs, limit=limit)
+
+    @compare.command("demo")
+    def usage_compare_demo(
+        self,
+        queries: str = Option(
+            "cooking mice,samurai revenge,hacker breaks into the pentagon,existential dread",
+            "--queries", "-q", help="Comma-separated list of queries",
+        ),
+        limit: int = Option(5, "--limit", "-l", help="Top-N per variant"),
+        runs: int = Option(5, "--runs", "-n", help="Timed runs per variant"),
+        output: Path = Option(
+            Path("DEMONSTRATION.md"), "--output", "-o", help="Output markdown path"
+        ),
+    ):
+        """Run canonical queries; regenerate DEMONSTRATION.md."""
+        return demo_adapter.demo(
+            queries=queries, limit=limit, runs=runs, output=output,
+        )
+
+    @compare.group()
+    def strategies(self):
+        """Same query, one variant, different strategies."""
+        pass
+
+    @strategies.command("rank-by")
+    def usage_compare_strategies_rank_by(
+        self,
+        query: str = Argument(..., help="Search query string"),
+        variant: str = Option(
+            "mv-qwen", "--variant", "-v",
             help="Vectorizer variant: mv-qwen, mv-mxbai, mv-minilm, mv-snowflake",
         ),
         timing: bool = Option(False, "--timing", help="Show timing information"),
         limit: int = Option(5, "--limit", "-l", help="Maximum results per test"),
     ):
-        """
-        Evaluate different ranking strategies.
-
-        Tests how different ranking approaches (best, relevance, count)
-        affect search results for the same query.
-
-        Examples:
-            ./manage.sh sample usage eval ranking "machine learning"
-            ./manage.sh sample usage eval ranking "AI" --timing --limit 15
-        """
-        return rankingCommand.ranking(
-            query=query,
-            variant=variant,
-            timing=timing,
-            limit=limit,
+        """Compare ranking strategies (best/relevance/count) on one variant."""
+        return rankByCommand.ranking(
+            query=query, variant=variant, timing=timing, limit=limit,
         )
 
-    @eval.command("cutoff")
-    def usage_eval_cutoff(
+    @strategies.command("threshold")
+    def usage_compare_strategies_threshold(
         self,
         query: str = Argument(..., help="Search query string"),
         variant: str = Option(
-            "mv-qwen",
-            "--variant",
-            "-v",
+            "mv-qwen", "--variant", "-v",
             help="Vectorizer variant: mv-qwen, mv-mxbai, mv-minilm, mv-snowflake",
         ),
         custom: str = Option(
-            "", "--custom", "-c", help="Custom cutoff values (comma-separated)"
+            "", "--custom", "-c", help="Custom threshold values (comma-separated)"
         ),
         timing: bool = Option(False, "--timing", help="Show timing information"),
         limit: int = Option(10, "--limit", "-l", help="Maximum results per test"),
     ):
-        """
-        Evaluate different similarity cutoff levels.
-
-        Tests how different cutoff values affect search results and
-        helps identify optimal cutoff levels for your use case.
-
-        Examples:
-            ./manage.sh sample usage eval cutoff "machine learning"
-            ./manage.sh sample usage eval cutoff "AI" --custom 0.6,0.7,0.8 --timing
-        """
-        return cutoffCommand.cutoff(
-            query=query,
-            variant=variant,
-            custom=custom,
-            timing=timing,
-            limit=limit,
+        """Compare similarity thresholds on one variant."""
+        return thresholdCommand.cutoff(
+            query=query, variant=variant, custom=custom, timing=timing, limit=limit,
         )

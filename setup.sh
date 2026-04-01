@@ -98,6 +98,7 @@ cmd_build() {
     local skip_seed=false
     local variant="all"
     local batch_size=100
+    local total=1000
     local remaining_args=()
 
     # Parse arguments
@@ -119,8 +120,12 @@ cmd_build() {
             variant="$2"
             shift 2
             ;;
-        --batch-size | --batches)
+        --batch-size)
             batch_size="$2"
+            shift 2
+            ;;
+        --total)
+            total="$2"
             shift 2
             ;;
         *)
@@ -159,15 +164,9 @@ cmd_build() {
 
     # Seed data
     if [ "$skip_seed" = false ]; then
-        case "$variant" in
-            minilm) variant="wk-minilm" ;;
-            snowflake) variant="wk-snow" ;;
-            movies-qwen) variant="mv-qwen" ;;
-            movies-mxbai) variant="mv-mxbai" ;;
-        esac
         print_info "Loading sample data..."
-        print_info "Variant: $variant, Batch size: $batch_size"
-        ./manage.sh seed --variant "$variant" --batch-size "$batch_size"
+        print_info "Variant: $variant   Total: $total   Batch size: $batch_size"
+        ./manage.sh seed --variant "$variant" --total "$total" --batch-size "$batch_size"
         echo ""
     else
         print_warning "Skipping data seeding (--skip-seed)"
@@ -176,9 +175,11 @@ cmd_build() {
     print_success "Build complete!"
     echo ""
     print_info "Next steps:"
-    echo "  ./manage.sh pgai_example info       # Show model configuration"
-    echo "  ./manage.sh pgai_example search     # Perform semantic search"
-    echo "  ./setup.sh status               # Check table status"
+    echo "  ./manage.sh pgai list                          # Track vectorizer progress"
+    echo "  ./manage.sh sample models                      # List vectorizer variants"
+    echo "  ./manage.sh sample usage api find 'your query' # Try a semantic search"
+    echo "  ./manage.sh sample usage compare demo          # Regenerate DEMONSTRATION.md"
+    echo "  ./setup.sh status                              # Check table row counts"
 }
 
 cmd_unbuild() {
@@ -322,8 +323,11 @@ cmd_help() {
     echo -e "      --skip-migrations     Skip migration generation"
     echo -e "      --skip-migrate        Skip running migrations"
     echo -e "      --skip-seed           Skip data loading"
-    echo -e "      --model MODEL         Model to use: minilm, snowflake, movies-qwen, movies-mxbai, or all"
-    echo -e "      --batches N           Number of batches to load (default: 10)"
+    echo -e "      --variant VARIANT     Vectorizer variant: mv-qwen, mv-mxbai, mv-minilm,"
+    echo -e "                            mv-snowflake, or all (default: all)"
+    echo -e "      --model VARIANT       Alias for --variant"
+    echo -e "      --total N             Total rows to seed (default: 1000)"
+    echo -e "      --batch-size N        Rows per insert batch (default: 100)"
     echo ""
     echo -e "  ${MAGENTA}unbuild${NC}                 ${RED}DESTRUCTIVE:${NC} Full database reset"
     echo -e "    Options:"
@@ -335,12 +339,7 @@ cmd_help() {
     echo ""
     echo -e "  ${MAGENTA}rebuild${NC}                 Clean unbuild + build sequence"
     echo -e "    Runs: unbuild -y, then build with passed options"
-    echo -e "    Options: (same as build command)"
-    echo -e "      --skip-migrations     Skip migration generation"
-    echo -e "      --skip-migrate        Skip running migrations"
-    echo -e "      --skip-seed           Skip data loading"
-    echo -e "      --model MODEL         Model to use: minilm, snowflake, or all"
-    echo -e "      --batches N           Number of batches to load"
+    echo -e "    Options: same as ${MAGENTA}build${NC} (see above)"
     echo ""
     echo -e "  ${MAGENTA}status${NC}                  Show database tables and row counts"
     echo ""
@@ -357,10 +356,10 @@ cmd_help() {
     echo -e "${GREEN}Examples:${NC}"
     echo ""
     echo -e "  ${CYAN}# Building${NC}"
-    echo -e "  ./setup.sh build                        # Full build with all models"
-    echo -e "  ./setup.sh build --model minilm         # Build with only MiniLM model"
-    echo -e "  ./setup.sh build --skip-seed            # Build without loading data"
-    echo -e "  ./setup.sh build --batches 5            # Load only 5 batches"
+    echo -e "  ./setup.sh build                        # Full build, all variants, 1000 rows"
+    echo -e "  ./setup.sh build --variant mv-minilm    # Build only the mv-minilm vectorizer"
+    echo -e "  ./setup.sh build --total 100            # Quick build with 100 rows"
+    echo -e "  ./setup.sh build --skip-seed            # Migrate only, skip data load"
     echo ""
     echo -e "  ${CYAN}# Destructive Operations (USE WITH CAUTION!)${NC}"
     echo -e "  ./setup.sh unbuild                      # Prompt for confirmation"

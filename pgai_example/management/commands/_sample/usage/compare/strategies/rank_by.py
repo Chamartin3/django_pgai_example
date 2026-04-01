@@ -125,4 +125,4 @@ class RankingCommand:
 
 
 # === Module Export ===
-rankingCommand = RankingCommand()
+rankByCommand = RankingCommand()

@@ -139,4 +139,4 @@ class CutoffCommand:
 
 
 # === Module Export ===
-cutoffCommand = CutoffCommand()
+thresholdCommand = CutoffCommand()

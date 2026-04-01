@@ -1,4 +1,13 @@
-"""Annotate command - semantic score annotation demo."""
+"""Annotate command - raw `semantic_score()` ORM expression.
+
+Demonstrates: `Model.objects.annotate(score=semantic_score(field, query))`.
+This is the lowest-level API — a plain Django expression you compose yourself.
+No manager wrapping, no helper, just an annotated queryset.
+
+Compare with:
+- `find` — uses `similar_in.<field>.find()` (returns SemanticResult list)
+- `rank` — uses `semantic_rank()` manager method (handles ordering internally)
+"""
 
 from django_pgai.db.semantic_search.expressions import semantic_score
 from typer import Argument, Option
@@ -44,12 +53,11 @@ def prepare_annotate_data(
     model_class = sample_model.get_model_class()
     field_name = sample_model.field_name
 
-    # NOTE: Thiss sohudl not anotate itself but it should be using the SemanticSearchQuerySet.
-    # Que queryst annotates the score This is just for demo purposes.
-
-    qs = model_class.objects.annotate(score=semantic_score(field_name, query)).order_by(
-        "-score"
-    )[:limit]
+    qs = (
+        model_class.objects
+        .annotate(score=semantic_score(field_name, query))
+        .order_by("-score")[:limit]
+    )
 
     results: list[AnnotateResultData] = [
         AnnotateResultData(

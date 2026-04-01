@@ -11,6 +11,8 @@ Usage:
 from .base import CLIComponent
 from .components import (
     AnnotateRenderer,
+    CompareModelsRenderer,
+    CompareTimingRenderer,
     EvalRenderer,
     ListRenderer,
     MessageRenderer,
@@ -32,6 +34,8 @@ __all__ = [
     'CLIRenderer',
     'CLIComponent',
     'AnnotateRenderer',
+    'CompareModelsRenderer',
+    'CompareTimingRenderer',
     'EvalRenderer',
     'ListRenderer',
     'MessageRenderer',

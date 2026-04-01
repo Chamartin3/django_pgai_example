@@ -289,6 +289,46 @@ class RankResultsData(TypedDict):
     limit: int
 
 
+class CompareVariantHit(TypedDict):
+    """One row of a variant's top-N result list."""
+    rank: int
+    title: str
+    score: float
+
+
+class CompareVariantColumn(TypedDict):
+    """All top-N hits for one vectorizer variant."""
+    variant_key: str
+    field: str
+    hits: list[CompareVariantHit]
+
+
+class CompareModelsData(TypedDict):
+    """Side-by-side comparison of one query across all variants."""
+    query: str
+    limit: int
+    columns: list[CompareVariantColumn]
+
+
+class TimingRowData(TypedDict):
+    """Timing benchmark row for one variant."""
+    variant_key: str
+    field: str
+    runs: int
+    mean_ms: float
+    p50_ms: float
+    p95_ms: float
+    min_ms: float
+    max_ms: float
+
+
+class CompareTimingData(TypedDict):
+    """Latency benchmark across all variants for one query."""
+    query: str
+    runs: int
+    rows: list[TimingRowData]
+
+
 __all__ = [
     'VectorizationStatus',
     'VectorizationState',
@@ -322,4 +362,9 @@ __all__ = [
     'AnnotateResultsData',
     'RankResultData',
     'RankResultsData',
+    'CompareVariantHit',
+    'CompareVariantColumn',
+    'CompareModelsData',
+    'TimingRowData',
+    'CompareTimingData',
 ]

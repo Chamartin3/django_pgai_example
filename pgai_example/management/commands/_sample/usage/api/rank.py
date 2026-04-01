@@ -1,4 +1,10 @@
-"""Rank command - semantic_rank queryset demo."""
+"""Rank command - manager-method semantic ranking.
+
+Demonstrates: `Model.objects.semantic_rank(query, fields=[...])` — the
+queryset-manager API. Unlike `find` (which returns SemanticResult objects),
+this returns a chainable Django QuerySet annotated with `semantic_score`,
+so you can `.filter()`, `.values()`, or `.iterator()` over it normally.
+"""
 
 from typer import Argument, Option
 
