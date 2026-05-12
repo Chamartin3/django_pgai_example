@@ -202,10 +202,10 @@ class Command(TyperCommand):
         limit: int = Option(5, "--limit", "-l", help="Top-N per variant"),
         runs: int = Option(5, "--runs", "-n", help="Timed runs per variant"),
         output: Path = Option(
-            Path("DEMONSTRATION.md"), "--output", "-o", help="Output markdown path"
+            Path("USAGE.md"), "--output", "-o", help="Output markdown path"
         ),
     ):
-        """Run canonical queries; regenerate DEMONSTRATION.md."""
+        """Run canonical queries; regenerate USAGE.md."""
         return demo_adapter.demo(
             queries=queries, limit=limit, runs=runs, output=output,
         )

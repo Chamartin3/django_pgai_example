@@ -6,37 +6,18 @@ The example app (`pgai_example`) defines a `Movie` model with **four vectorizers
 
 ---
 
-## Stack
-
-| Service             | Role                                             |
-|---------------------|--------------------------------------------------|
-| `db`                | TimescaleDB (pg17) with the pgai extension       |
-| `vectorizer-worker` | Background worker that generates embeddings     |
-| `ollama-worker`     | Ollama instance for bulk embedding (worker side) |
-| `ollama-query`      | Ollama instance for query-time embedding         |
-| `django`            | Django app container (runserver on `:8080`)      |
-
----
-
-## Prerequisites
-
-- Docker + Docker Compose
-- A local checkout of `django-pgai` (path set via `DJANGO_PGAI_PATH` in `.env`)
-- A directory of Ollama models (`OLLAMA_MODELS_PATH` in `.env`) containing the embedding models referenced in `pgai_example/models.py` (`qwen3-embedding`, `mxbai-embed-large`, `all-minilm`, `snowflake-arctic-embed`).
-
----
-
-## About `manage.sh`
-
-`manage.sh` is a thin proxy that runs `manage.py` inside the `django` container. It uses `docker compose exec` when the service is up, and falls back to `docker compose run --rm` otherwise. Anywhere this README uses `./manage.sh foo`, the equivalent without the wrapper is:
+## Clone & install
 
 ```bash
-docker compose exec django uv run python manage.py foo
-# or, if the django service isn't running:
-docker compose run --rm django bash -c "uv sync && uv run python manage.py foo"
+git clone https://github.com/omidev/django_pgai_example.git
+cd django_pgai_example
+cp .env.example .env   # then edit DJANGO_PGAI_PATH to point at your local django-pgai checkout
+docker compose up -d
 ```
 
-Use whichever you prefer.
+Requires Docker + Docker Compose and a local checkout of [`django-pgai`](https://github.com/omidev/django_pgai) — its path goes in `DJANGO_PGAI_PATH` in `.env`. Ollama runs inside the stack and pulls the embedding models on first use; nothing to download manually.
+
+`./manage.sh foo` is shorthand for `docker compose exec django uv run python manage.py foo`. Use either.
 
 ---
 
@@ -87,6 +68,8 @@ The `vectorizer-worker` service polls the queue and writes embeddings asynchrono
 ./manage.sh pgai errors                        # recent worker errors
 ```
 
+![pgai list terminal output](docs/images/pgai-list.png)
+
 Tail the worker logs if something looks stuck:
 
 ```bash
@@ -100,6 +83,8 @@ docker compose logs -f vectorizer-worker
 ```
 
 Then open <http://localhost:8080/admin/> and log in. The `Movie` admin (registered via the plugin's `register_admin`) shows the source rows plus vectorization state for each vectorizer, so you can confirm that embeddings exist for every variant.
+
+![Django admin: vectorizer list](docs/images/admin-vectorizers.png)
 
 ### 6. Try the usage commands
 
