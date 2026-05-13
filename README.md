@@ -6,6 +6,61 @@ The example app (`pgai_example`) defines a `Movie` model with **four vectorizers
 
 ---
 
+## The model: one source column, four embeddings, zero glue code
+
+This is the entire setup. One Django model. The library does the rest:
+schema, vectorizer registration, chunking, embedding writes, and the
+similarity search ORM expressions.
+
+```python
+# pgai_example/models.py
+from django_pgai.fields import VectorizedTextField
+from django_pgai.db import SemanticQuerySet
+
+class Movie(models.Model):
+    title = models.TextField()
+    overview = VectorizedTextField(
+        vectorizer_name="movie_overview_qwen3",
+        embedding_model="qwen3-embedding",
+        embedding_dimensions=4096,
+        chunk_size=300, chunk_overlap=30,
+    )
+    overview_mxbai = VectorizedTextField(
+        vectorizer_name="movie_overview_mxbai",
+        source_field="overview",
+        embedding_model="mxbai-embed-large:latest",
+        embedding_dimensions=1024,
+        chunk_size=300, chunk_overlap=30,
+    )
+    overview_minilm = VectorizedTextField(
+        vectorizer_name="movie_overview_minilm",
+        source_field="overview",
+        embedding_model="all-minilm",
+        embedding_dimensions=384,
+        chunk_size=400, chunk_overlap=30,
+    )
+    overview_snowflake = VectorizedTextField(
+        vectorizer_name="movie_overview_snowflake",
+        source_field="overview",
+        embedding_model="snowflake-arctic-embed",
+        embedding_dimensions=1024,
+        chunk_size=350,
+    )
+    genres = models.TextField(blank=True, default="")
+    objects = SemanticQuerySet.as_manager()
+```
+
+`overview` is the only real text column. The other three fields carry
+`source_field="overview"`. They are **proxy** vectorizers that read the
+same text but produce embeddings under a different model. One source
+column, four parallel embedding indexes, all managed by the plugin. A
+single `makemigrations` registers all four vectorizers with pgai, and the
+`vectorizer-worker` service writes embeddings in the background. You write
+no SQL, no triggers, no embed calls. `VectorizedTextField` is the only
+new primitive.
+
+---
+
 ## Clone & install
 
 ```bash
@@ -15,7 +70,7 @@ cp .env.example .env   # then edit DJANGO_PGAI_PATH to point at your local djang
 docker compose up -d
 ```
 
-Requires Docker + Docker Compose and a local checkout of [`django-pgai`](https://github.com/omidev/django_pgai) — its path goes in `DJANGO_PGAI_PATH` in `.env`. Ollama runs inside the stack and pulls the embedding models on first use; nothing to download manually.
+Requires Docker + Docker Compose and a local checkout of [`django-pgai`](https://github.com/omidev/django_pgai). Its path goes in `DJANGO_PGAI_PATH` in `.env`. Ollama runs inside the stack and pulls the embedding models on first use; nothing to download manually.
 
 `./manage.sh foo` is shorthand for `docker compose exec django uv run python manage.py foo`. Use either.
 
@@ -128,6 +183,21 @@ List the available model variants:
 ./setup.sh unbuild     # drop volume + delete migration files (destructive)
 ./setup.sh rebuild     # unbuild + build
 ```
+
+---
+
+## Documentation
+
+- [`docs/USAGE.md`](docs/USAGE.md): full API tour. `similar_in.find()`,
+  `semantic_rank()`, `semantic_score()`, thresholds, ranking strategies,
+  and combining multiple embedding variants on one query.
+- [`docs/MODEL_COMPARISON.md`](docs/MODEL_COMPARISON.md): per variant
+  technical comparison (model size, embed and query latency, index size,
+  top 1 score) with a cost and benefit analysis to help pick a variant.
+
+Both documents are written against real benchmark data captured by
+`./manage.sh sample usage compare cost --output …` and
+`./manage.sh sample usage compare demo --output …`.
 
 ---
 

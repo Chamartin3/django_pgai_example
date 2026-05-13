@@ -178,7 +178,8 @@ cmd_build() {
     echo "  ./manage.sh pgai list                          # Track vectorizer progress"
     echo "  ./manage.sh sample models                      # List vectorizer variants"
     echo "  ./manage.sh sample usage api find 'your query' # Try a semantic search"
-    echo "  ./manage.sh sample usage compare demo          # Regenerate USAGE.md"
+    echo "  ./manage.sh sample usage compare demo -o <path/to/usage.md>   # Query-time benchmark (+ .json sibling)"
+    echo "  ./manage.sh sample usage compare cost -o <path/to/cost.json>  # Static cost benchmark"
     echo "  ./setup.sh status                              # Check table row counts"
 }
 

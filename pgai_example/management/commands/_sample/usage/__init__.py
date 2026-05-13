@@ -6,7 +6,7 @@ Three groups:
 - `compare/strategies/` - strategy comparisons (one variant, different knobs)
 """
 from .api import annotate, filter, find, rank
-from .compare import demo, resultsCommand, timeCommand
+from .compare import cost, demo, resultsCommand, timeCommand
 from .compare.strategies import rankByCommand, thresholdCommand
 
 __all__ = [
@@ -14,6 +14,7 @@ __all__ = [
     "filter",
     "find",
     "rank",
+    "cost",
     "demo",
     "resultsCommand",
     "timeCommand",

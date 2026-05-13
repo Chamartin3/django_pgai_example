@@ -37,6 +37,7 @@ from pathlib import Path
 
 from ._sample.usage import (
     annotate as annotate_adapter,
+    cost as cost_adapter,
     demo as demo_adapter,
     filter as filter_adapter,
     find as find_adapter,
@@ -192,20 +193,33 @@ class Command(TyperCommand):
         """Latency benchmark per variant (mean/p50/p95)."""
         return timeCommand.time(query=query, runs=runs, limit=limit)
 
+    @compare.command("cost")
+    def usage_compare_cost(
+        self,
+        output: Path = Option(
+            ..., "--output", "-o",
+            help="Output JSON path for the cost report",
+        ),
+        runs: int = Option(5, "--runs", "-n", help="Embed-only timed runs per variant"),
+    ):
+        """Static cost benchmark: model size, index size, embed latency."""
+        return cost_adapter.cost(runs=runs, output=output)
+
     @compare.command("demo")
     def usage_compare_demo(
         self,
+        output: Path = Option(
+            ..., "--output", "-o",
+            help="Output markdown path (a JSON sibling is also written)",
+        ),
         queries: str = Option(
             "cooking mice,samurai revenge,hacker breaks into the pentagon,existential dread",
             "--queries", "-q", help="Comma-separated list of queries",
         ),
         limit: int = Option(5, "--limit", "-l", help="Top-N per variant"),
         runs: int = Option(5, "--runs", "-n", help="Timed runs per variant"),
-        output: Path = Option(
-            Path("USAGE.md"), "--output", "-o", help="Output markdown path"
-        ),
     ):
-        """Run canonical queries; regenerate USAGE.md."""
+        """Run canonical queries; write raw JSON + markdown report."""
         return demo_adapter.demo(
             queries=queries, limit=limit, runs=runs, output=output,
         )

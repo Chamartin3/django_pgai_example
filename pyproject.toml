@@ -11,6 +11,8 @@ dependencies = [
     "psycopg[binary]>=3.0",
     "rich",
     "ipython",
+    "jupyter",
+    "matplotlib",
     "pgai[vectorizer-worker]==0.11.2",
     "django-pgai",
 ]
